@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16
+    container_name: school-library-db
+    environment:
+      POSTGRES_DB: library
+      POSTGRES_USER: library_user
+      POSTGRES_PASSWORD: library_password
+    volumes:
+      - library_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library_user -d library"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ./SchoolLibrary.Web
+    container_name: school-library-web
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: Host=db;Database=library;Username=library_user;Password=library_password
+
+volumes:
+  library_data:
